@@ -24,3 +24,14 @@ Ketika saya mengetik sebuah teks di salah satu terminal *client* lalu menekan En
 Aplikasi *chat* ini sangat cocok menggunakan arsitektur *asynchronous* karena aplikasi harus selalu siap merespons berbagai *event* yang bisa terjadi kapan saja tanpa saling memblokir (*blocking*). Di sini, kita menggunakan *macro* `tokio::select!` untuk menangani konkurensi:
 - **Di sisi Server:** `tokio::select!` memungkinkan server untuk secara konkuren memantau pesan masuk dari klien (via `WebSocketStream`) dan pesan keluar dari *channel broadcast* (via `Receiver`). Siapa pun yang datanya *ready* lebih dulu akan dieksekusi.
 - **Di sisi Client:** `tokio::select!` digunakan dalam *loop* tanpa henti untuk memantau input ketikan pengguna dari *keyboard* (`stdin.next_line()`) sekaligus memantau pesan masuk dari server (`ws_stream.next()`). Jika kita menggunakan pendekatan *synchronous* biasa, program akan tertahan menunggu input pengguna (menunggu *Enter*) dan tidak bisa menampilkan pesan baru dari server hingga pengguna selesai mengetik. Dengan *async*, keduanya berjalan independen secara bersamaan.
+
+## Experiment 2.2: Modifying the Websocket Port
+
+### Perubahan yang Dilakukan
+Untuk mengubah *port* komunikasi WebSocket dari `2000` menjadi `8080`, ada dua titik yang harus disesuaikan karena arsitektur ini berbasis *client-server*:
+1. **Sisi Server (`src/bin/server.rs`):** Saya mengubah argumen pada `TcpListener::bind("127.0.0.1:8080").await?`. Ini menginstruksikan server untuk membuka dan mendengarkan (*listen*) koneksi TCP yang masuk secara spesifik pada *port* 8080.
+2. **Sisi Client (`src/bin/client.rs`):** Saya mengubah target URI pada `ClientBuilder::from_uri(Uri::from_static("ws://127.0.0.1:8080"))`. Hal ini memastikan klien melakukan proses *handshake* WebSocket ke alamat IP dan *port* server yang baru.
+
+Keduanya menggunakan protokol `ws://` yang menandakan koneksi WebSocket standar tanpa enkripsi.
+
+![Screenshot Port 8080](image5.png)
