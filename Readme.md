@@ -35,3 +35,20 @@ Untuk mengubah *port* komunikasi WebSocket dari `2000` menjadi `8080`, ada dua t
 Keduanya menggunakan protokol `ws://` yang menandakan koneksi WebSocket standar tanpa enkripsi.
 
 ![Screenshot Port 8080](image5.png)
+
+## Experiment 2.3: Small changes. Add some information to client
+
+### Modifikasi IP dan Port Pengirim
+Pada arsitektur *chat* bawaan, klien hanya mengirimkan teks mentah (String) dan tidak menyertakan informasi identitas apa pun. Jika modifikasi dilakukan di sisi klien, klien tidak mengetahui identitas (IP dan Port) asli klien lain.
+
+Oleh karena itu, modifikasi terbaik diletakkan di **sisi Server** (`src/bin/server.rs`). Server bertindak sebagai pusat komunikasi yang memiliki akses ke `SocketAddr` (IP dan Port) dari setiap klien saat mereka terhubung (`listener.accept()`). 
+
+Saat server menerima pesan dari klien (`incoming = ws_stream.next()`), saya menambahkan logika untuk menggabungkan alamat pengirim (`addr`) dengan teks pesan asli menggunakan makro `format!`:
+`let formatted_message = format!("{}: {}", addr, text);`
+Setelah digabungkan, barulah *string* baru tersebut dilempar ke `bcast_tx.send` untuk disebarkan ke klien lain. Dengan cara ini, klien penerima bisa mengetahui persis siapa pengirim pesan tersebut meskipun sistem belum memiliki fitur *username*.
+
+![Screenshot Chat IP Port](image6.png)
+---
+![Screenshot Chat IP Port](image7.png)
+---
+![Screenshot Chat IP Port](image8.png)

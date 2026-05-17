@@ -37,7 +37,6 @@ async fn handle_connection(
             msg_result = bcast_rx.recv() => {
                 match msg_result {
                     Ok((msg_text, sender_addr)) => {
-                        // OPTIONAL TASK: Only send if the sender is NOT the current client
                         if sender_addr != addr {
                             let formatted_msg = format!("{}: {}", sender_addr, msg_text);
                             ws_stream.send(Message::text(formatted_msg)).await?;
